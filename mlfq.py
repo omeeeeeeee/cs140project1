@@ -1,2 +1,6 @@
 # CS 140 Project 1
-# Good luck guys
+# Members:
+# Jakin Bacalla
+# Naomi Amparo
+# Ramon Comendador
+# Shane Odhuno
