@@ -61,7 +61,6 @@ Queues : [D, A];[];[]
 CPU : C
 
 At Time = 9
-B DONE
 Queues : [D, A];[];[]
 CPU : C
 
@@ -184,17 +183,14 @@ D DEMOTED
 At Time = 37
 Queues : [];[];[]
 CPU: D
-D DEMOTED
 
 At Time = 38
 Queues : [];[];[]
 CPU: D
-D DEMOTED
 
 At Time = 39
 Queues : [];[];[]
 CPU: D
-D DEMOTED
 
 At Time = 40
 D DONE
@@ -208,7 +204,7 @@ Turn-around time for Process B : 8- 0 = 8 ms
 Turn-around time for Process C : 28- 0 = 28 ms 
 Turn-around time for Process D : 40- 0 = 40 ms 
 Average Turn-around time = 24 ms 
-Waiting time for Process A : 16 ms 
-Waiting time for Process B : 4 ms 
-Waiting time for Process C : 16 ms
+Waiting time for Process A : 12 ms 
+Waiting time for Process B : 6 ms 
+Waiting time for Process C : 18 ms
 Waiting time for Process D : 20 ms
