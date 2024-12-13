@@ -204,7 +204,7 @@ Turn-around time for Process B : 8- 0 = 8 ms
 Turn-around time for Process C : 28- 0 = 28 ms 
 Turn-around time for Process D : 40- 0 = 40 ms 
 Average Turn-around time = 24 ms 
-Waiting time for Process A : 12 ms 
-Waiting time for Process B : 6 ms 
+Waiting time for Process A : 8 ms
+Waiting time for Process B : 4 ms 
 Waiting time for Process C : 18 ms
 Waiting time for Process D : 20 ms
