@@ -43,13 +43,13 @@ class MLFQ:
 
 
 # Each process has its own set of properties that identifies them.
-# Luckily, for this project, we can assume that the user gives, in advance,
-# all of these details through the set1.txt and set2.txt input files.
+# Luckily, for this project, we can assume that the user gives all of these
+# details in advance through the set1.txt and set2.txt input files.
 
 
 # We take advantage of this by incorporating as much up-front data as possible.
-# In addition, since we are dealing with a split of CPU and I/O times,
-# perhaps we could try placing these times in an array data structure to account for this?
+# In addition, since we are dealing with a split of CPU and I/O times, perhaps we could
+# try placing these times in separate, array data structures to account for this?
 
 
 class Process:
@@ -78,7 +78,7 @@ class Process:
 # The first lines will always be 4 integers, as instructed, so we extract and initialize them as so.
 
 # We can then take comfort in knowing that the succeeding lines are all just process details.
-# In addition, we also know that these details have a fixed pattern and are separated by semicolons.
+# In addition, we also know that these details have a fixed pattern and are always separated by semicolons.
 
 
 def parse_input(file_content):
@@ -132,7 +132,7 @@ def run_sjf_scheduler(MLFQ, process_list):
     pass
 
 
-# This is a placeholder. Don't do anything to this yet.
+# This is a placeholder.
 def run_mlfq_scheduler(MLFQ, process_list):
     pass
 
@@ -166,7 +166,7 @@ def run_mlfq_scheduler(MLFQ, process_list):
 
 
 if __name__ == "__main__":
-    # Parse set1.txt
+    # Parse set1.txt, use it to run the scheduler, and then output the results.
     with open("set1.txt", "r") as file:
         file_content = file.read()
 
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     first_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
     run_mlfq_scheduler(first_MLFQ, process_list)
 
-    # Parse set2_test.txt
+    # Parse set2.txt, use it to run the scheduler, and then output the results.
     with open("set2.txt", "r") as file:
         file_content = file.read()
 
