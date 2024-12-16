@@ -14,7 +14,8 @@
 # FCFS: First Come First Serve (i.e. First In, First Out)
 # SJF: Shortest Job First
 
-# Initialize the constants.
+# We start first by initializing the constants.
+
 RR_TIME_QUANTUM = 4
 
 RR_HIGH_PRIORITY = 1
@@ -29,14 +30,14 @@ class MLFQ:
         self.currentGlobalTime = 0
         self.recentRunningProcess = 0
 
-        self.roundRobinQueue = []  # This should be a Queue Data Structure.
+        self.roundRobinQueue = []
         self.rrTimeQuantum = RR_TIME_QUANTUM
         self.rrTimeAllotment = rr_allotment
 
-        self.firstComeFirstServeQueue = []  # This should be a Queue Data Structure.
+        self.firstComeFirstServeQueue = []
         self.fcfsTimeAllotment = fcfs_allotment
 
-        self.shortestJobFirstQueue = []  # This should be a Queue Data Structure.
+        self.shortestJobFirstQueue = []
 
         self.ioProcesses = []
         self.contextSwitch = context_switch_time
@@ -62,8 +63,8 @@ class Process:
         self.cpuTimes = []
         self.ioTimes = []
 
-        self.remainingTimeQuantum = 0
-        self.remainingTimeAllotment = 0
+        self.usedTimeQuantum = 0
+        self.usedTimeAllotment = 0
 
         self.totalBurstTime = 0
 
@@ -74,30 +75,28 @@ class Process:
         self.currentQueue = RR_HIGH_PRIORITY  # All processes start at the Highest Queue: Round Robin.
 
 
-# The input can be divided into two halves, separated by a newline (/n) in between.
-# The first lines will always be 4 integers, as instructed, so we extract and initialize them as so.
-
-# We can then take comfort in knowing that the succeeding lines are all just process details.
-# In addition, we also know that these details have a fixed pattern and are always separated by semicolons.
-
-
 def parse_input(file_content):
     lines = file_content.strip().split("\n")
+
+    # The input can be divided into two halves, separated by a newline ("\n") in between.
+    # The first lines will always be 4 integers, as instructed, so we extract and initialize them as so.
 
     num_processes = int(lines[0])
     rr_allotment = int(lines[1])
     fcfs_allotment = int(lines[2])
     context_switch_time = int(lines[3])
+
+    # Extract CPU and I/O times. We can then take comfort in knowing that the succeeding lines are all just process details.
     process_lines = lines[5:]
 
     process_list = []
 
+    # In addition, we also know that these details have a fixed pattern and are always separated by semicolons.
     for idx, process_line in enumerate(process_lines):
         parts = process_line.split(";")
         process_name = parts[0]
         arrival_time = int(parts[1])
 
-        # Extract CPU and I/O times
         cpu_times = [int(parts[i]) for i in range(2, len(parts), 2)]
         io_times = [int(parts[i]) for i in range(3, len(parts), 2)]
 
@@ -107,62 +106,161 @@ def parse_input(file_content):
         process.arrivalTime = arrival_time
         process.cpuTimes = cpu_times
         process.ioTimes = io_times
-        process.totalBurstTime = sum(cpu_times)
+        process.totalBurstTime = sum(cpu_times) + sum(io_times)
 
         process_list.append(process)
 
-    # Sort processes by arrival time and then by process ID (alphabetical order)
+    # Sort processes by arrival time and then by process ID (alphabetical order).
+    # We assume that the input file is already sorted at least by processName
+    # (with hopefully the correct corresponding processID mappings).
+
     process_list.sort(key=lambda p: (p.arrivalTime, p.processID))
 
     return num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list
 
 
-# This is a placeholder.
-def run_rr_scheduler(MLFQ, process_list):
+# This is a placeholder. Please implement this.
+def print_mlfq_state(MLFQ, process_list):
     pass
 
 
-# This is a placeholder.
-def run_fcfs_scheduler(MLFQ, process_list):
-    pass
+def print_simulation_summary(process_list):
+    total_turnaround_time = 0
+
+    print("\nSIMULATION DONE\n")
+
+    # Calculate turnaround and waiting times for each process.
+    for process in process_list:
+        process.turnaroundTime = process.completionTime - process.arrivalTime
+        process.waitingTime = process.completionTime - process.totalBurstTime
+        total_turnaround_time += process.turnaroundTime
+
+        print(f"Turn-around time for Process {process.processName} : " f"{process.completionTime} - {process.arrivalTime} = {process.turnaroundTime} ms")
+
+    # Calculate and print average turnaround time.
+    average_turnaround_time = total_turnaround_time / len(process_list)
+    print(f"Average Turn-around time = {round(average_turnaround_time, 4)} ms\n")
+
+    # Print waiting times.
+    for process in process_list:
+        print(f"Waiting time for Process {process.processName} : {process.waitingTime} ms")
 
 
-# This is a placeholder.
-def run_sjf_scheduler(MLFQ, process_list):
-    pass
-
-
-# This is a placeholder.
 def run_mlfq_scheduler(MLFQ, process_list):
-    pass
+    while True:
+        # Step 1: Add newly arriving processes to the highest priority queue: the Round Robin Queue.
+        for process in process_list:
+            if process.arrivalTime == MLFQ.currentGlobalTime and process not in MLFQ.roundRobinQueue:
+                MLFQ.roundRobinQueue.append(process)
 
-    # POSSIBLE HIGH-LEVEL IMPLEMENTATION:
+        if MLFQ.currentGlobalTime > 0:
+            # Step 2: Handle IO processes, if any. Decrement I/O bursts per time step and check for CPU burst times.
+            for process in MLFQ.ioProcesses:
+                if process.ioTimes:
+                    process.ioTimes[0] -= 1
 
-    # 1.) At each time step, starting from "currentGlobalTime = 0", first check for any newly arriving processes based on these conditions:
-    #   1.1. If "currentGlobalTime = arrivalTime" and "processID is NOT in roundRobinQueue"
-    #   1.2. If 1.1. is TRUE, then we enqueue the processes (in order of "processID") to the "roundRobinQueue".
-    #        We also set "recentRunningProcess" to the value at the start of the queue/s. Remember, queue priority is important here.
+                    if process.ioTimes[0] == 0:
+                        process.ioTimes.pop(0)
+                        MLFQ.ioProcesses.remove(process)
 
-    # 2.) At each time step, starting from "currentGlobalTime = 0" (and assuming that the process is NOT in "ioProcesses"), we both decrement "cpuTimes[i]"
-    #   (where "i" is the current CPU sub-burst time of the process) by 1 as well as increment the "remainingTimeQuantum"
-    #   and the "remainingTimeAllotment" by 1 and then check then for any of these conditions:
+                        if process.cpuTimes:
+                            if process.currentQueue == RR_HIGH_PRIORITY:
+                                MLFQ.roundRobinQueue.append(process)
+                            elif process.currentQueue == FCFS_MEDIUM_PRIORITY:
+                                MLFQ.firstComeFirstServeQueue.append(process)
+                            elif process.currentQueue == SJF_LOW_PRIORITY:
+                                MLFQ.shortestJobFirstQueue.append(process)
 
-    #   2.1.) If "cpuTimes[i] > 0" and "remainingTimeAllotment" is equal to either the "rrTimeAllotment" or the "fcfsTimeAllotment",
-    #       then we have to dequeue the process and enqueue it to the lower priority queue.
+                        process.completionTime = MLFQ.currentGlobalTime
 
-    #   2.2.) If "cpuTimes[i] > 0" and "remainingTimeQuantum" is equal to "rrTimeQuantum",
-    #       then we have to dequeue the process and re-enqueue it to the same priority queue.
+            # Step 3: Process CPU bursts and handle queue transitions.
+            # TODO: Also please don't forget to implement the actual algorithm for Shortest Job First!
+            for current_queue in [MLFQ.roundRobinQueue, MLFQ.firstComeFirstServeQueue, MLFQ.shortestJobFirstQueue]:
+                if current_queue:
+                    current_process = current_queue[0]
 
-    #   2.3.) If "cpuTimes[i]" is equal to 0,
-    #       then we have to dequeue the process. We can then either:
-    #       2.3.1.) Append the process to the "ioProcesses". Then, we dequeue it from "ioProcesses" if "ioTimes[i]" = 0 and then we can either:
-    #           2.3.1.1.) Re-enqueue it to its priority queue if isn't finished yet.
-    #           2.3.1.1.) Set its "currentQueue" to NULL_QUEUE_PRIORITY if it just finised.
-    #       2.3.2.) Or, directly and simply set its "currentQueue" to NULL_QUEUE_PRIORITY if it has finished already.
+                    # Decrement CPU bursts per time step. In addition,
+                    # increment the time quantum and time allotment used by the current process so far.
 
-    # REMINDER: If a dequeue from a CPU queue has occurred, and then the new process at queue[0] is NOT the same
-    # as the previous one (i.e. "queue[0] is NOT equal to recentRunningProcess"),
-    # and "contextSwitch > 0", then a Context Switch has to occur first.
+                    if current_process.cpuTimes:
+                        current_process.cpuTimes[0] -= 1
+                        current_process.usedTimeQuantum += 1
+                        current_process.usedTimeAllotment += 1
+
+                        # If a CPU burst is done, it means that the process is either finished or going to I/O.
+                        if current_process.cpuTimes[0] == 0:
+                            current_process.cpuTimes.pop(0)
+                            if current_process.ioTimes:
+                                current_process.usedTimeQuantum = 0
+                                current_process.usedTimeAllotment = 0
+                                MLFQ.ioProcesses.append(current_process)
+                            elif not current_process.cpuTimes:
+                                current_process.currentQueue = NULL_QUEUE_PRIORITY
+                                current_process.completionTime = MLFQ.currentGlobalTime
+                            current_queue.pop(0)
+
+                        # If the Round Robin Time Allotment expires before the CPU burst is finished,
+                        # then demote the process to the FCFS Queue.
+
+                        elif current_process.currentQueue == RR_HIGH_PRIORITY and current_process.usedTimeAllotment == MLFQ.rrTimeAllotment:
+                            current_process.currentQueue = FCFS_MEDIUM_PRIORITY
+                            current_process.usedTimeAllotment = 0
+                            current_process.usedTimeQuantum = 0  # Not really necessary
+                            current_queue.pop(0)
+                            MLFQ.firstComeFirstServeQueue.append(current_process)
+
+                        # If the Round Robin Time Quantum expires before the CPU burst is finished,
+                        # then switch out the process.
+
+                        elif current_process.currentQueue == RR_HIGH_PRIORITY and current_process.usedTimeQuantum == MLFQ.rrTimeQuantum:
+                            current_process.usedTimeQuantum = 0
+                            current_queue.pop(0)
+                            current_queue.append(current_process)
+
+                        # If the FCFS Time Allotment expires before the CPU burst is finished,
+                        # then demote the process to the SJF Queue.
+
+                        elif current_process.currentQueue == FCFS_MEDIUM_PRIORITY and current_process.usedTimeAllotment == MLFQ.fcfsTimeAllotment:
+                            current_process.currentQueue = SJF_LOW_PRIORITY
+                            current_process.usedTimeAllotment = 0  # Not really necessary
+                            current_process.usedTimeQuantum = 0  # Not really necessary
+                            current_queue.pop(0)
+                            MLFQ.shortestJobFirstQueue.append(current_process)
+
+                    # Handle Context Switching between different processes.
+                    if current_queue and MLFQ.recentRunningProcess != current_queue[0].processID:
+
+                        if MLFQ.contextSwitch > 0:
+                            MLFQ.recentRunningProcess = 0
+                            print_mlfq_state(MLFQ, process_list)
+                            MLFQ.currentGlobalTime += MLFQ.contextSwitch
+
+                        MLFQ.recentRunningProcess = current_queue[0].processID
+
+                    break  # Remember, queues can only be ran, one at a time, based on the priority order.
+
+        else:
+            MLFQ.recentRunningProcess = MLFQ.roundRobinQueue[0].processID
+
+        # Print the current state of MLFQ.
+        print_mlfq_state(MLFQ, process_list)
+
+        # Increment global time.
+        MLFQ.currentGlobalTime += 1
+
+        # TODO: This stops the scheduler if at any point in time, except for at t = 0,
+        # all three of the queues are empty at the same time. However, I do not know if
+        # this should be the correct behavior according to the project specs.
+
+        if not (MLFQ.roundRobinQueue or MLFQ.firstComeFirstServeQueue or MLFQ.shortestJobFirstQueue):
+            print_simulation_summary(process_list)
+            break
+
+
+# Do we modularize this main function into sub functions as well?
+# Also, is it possible for the input to be typed by the user via the terminal?
+# I do not know if these features need to be implemented (neither of them have been yet).
+# Regardless, I just wanted to give a heads up anyways just in case.
 
 
 if __name__ == "__main__":
