@@ -21,11 +21,11 @@ num_queues = 3
 queues = [deque() for _ in range(num_queues)]
 time_slices = [2, 4, 8]
 
-# Sample processes
+# Sample processes with alternating CPU and I/O bursts
 processes = [
-  Process(pid=1, arrival_time=0, burst_time=6),
-  Process(pid=2, arrival_time=2, burst_time=4),
-  Process(pid=3, arrival_time=4, burst_time=8),
+  Process(pid=1, arrival_time=0, burst_sequence=[5, 3, 4, 2]),
+  Process(pid=2, arrival_time=1, burst_sequence=[6, 2, 3, 1]),
+  Process(pid=3, arrival_time=3, burst_sequence=[4, 6, 5]),
 ]
 
 # Add processes to the highest-priority queue initially
