@@ -4,13 +4,17 @@
 from collections import deque
 
 class Process:
-  def __init__(self, pid, arrival_time, burst_time):
+  def __init__(self, pid, arrival_time, burst_sequence):
     self.pid = pid
     self.arrival_time = arrival_time
-    self.burst_sequence = burst_time
-    self.remaining_time = burst_time
-    self.queue_level = 0
-    self.wait_time = 0
+    self.burst_sequence = burst_sequence
+    self.current_burst_index = 0  # Index of the current burst in the sequence
+    self.remaining_time = burst_sequence[0] # Remaining time for the current burst
+    self.queue_level = 0  # Start in the highest-priority queue
+    self.is_waiting_io = False  # Whether the process is in an I/O phase
+
+  def is_complete(self):
+    return self.current_burst_index >= len(self.burst_sequence)
 
 # Initialize queues
 num_queues = 3
@@ -52,5 +56,6 @@ while any(queue for queue in queues):
 
       # Exit loop to re-evaluate queue priorities
       break
+
 
 
