@@ -19,6 +19,7 @@ class Process:
 # Initialize queues
 num_queues = 3
 queues = [deque() for _ in range(num_queues)]
+io_deque = deque()  # Queue for processing i/o phases
 time_slices = [2, 4, 8]
 
 # Sample processes with alternating CPU and I/O bursts
