@@ -30,18 +30,13 @@ class MLFQ:
     def __init__(self, rr_allotment, fcfs_allotment, context_switch_time):
         self.currentGlobalTime = 0
         self.recentRunningProcess = 0
-
         self.roundRobinQueue = []
         self.rrTimeQuantum = RR_TIME_QUANTUM
         self.rrTimeAllotment = rr_allotment
-
         self.firstComeFirstServeQueue = []
         self.fcfsTimeAllotment = fcfs_allotment
-
         self.shortestJobFirstQueue = []
-
         self.ioProcesses = []
-
         self.contextSwitch = context_switch_time
         self.totalCSTime = 0
 
@@ -60,23 +55,16 @@ class Process:
     def __init__(self):
         self.processName = ""
         self.processID = 0
-
         self.arrivalTime = 0
-
         self.cpuTimes = []
         self.ioTimes = []
-
         self.usedTimeQuantum = 0
         self.usedTimeAllotment = 0
-
         self.totalBurstTime = 0
-
         self.completionTime = 0
         self.turnaroundTime = 0
         self.waitingTime = 0
-
         self.processCSTime = 0
-
         self.currentQueue = RR_HIGH_PRIORITY  # All processes start at the Highest Queue: Round Robin.
 
 
@@ -166,7 +154,7 @@ def print_simulation_summary(process_list: list[Process]):
 
 
 # IMPORTANT: According to the sample input in the project specs it seems that
-# (to give an exammple), if a process is in I/O in a higher priority queue when,
+# (to give an example), if a process is in I/O in a higher priority queue when,
 # at the same time, another process in a lower priority queue is just about to run next,
 # then the lower priority process should actually be allowed to run its entire burst time.
 
@@ -307,6 +295,7 @@ if __name__ == "__main__":
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
     first_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
     run_mlfq_scheduler(first_MLFQ, process_list)
+    print()
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
     with open("set2.txt", "r") as file:
@@ -315,11 +304,4 @@ if __name__ == "__main__":
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
     second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
     run_mlfq_scheduler(second_MLFQ, process_list)
-
-    # Parse set3.txt, use it to run the scheduler, and then output the results.
-    with open("set3.txt", "r") as file:
-        file_content = file.read()
-
-    num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
-    second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
-    run_mlfq_scheduler(second_MLFQ, process_list)
+    print()
