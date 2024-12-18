@@ -13,6 +13,7 @@
 # RR: Round Robin
 # FCFS: First Come First Serve (i.e. First In, First Out)
 # SJF: Shortest Job First
+# CS: Context Switch
 
 # We start first by initializing the constants.
 
@@ -40,7 +41,9 @@ class MLFQ:
         self.shortestJobFirstQueue = []
 
         self.ioProcesses = []
+
         self.contextSwitch = context_switch_time
+        self.totalCSTime = 0
 
 
 # Each process has its own set of properties that identifies them.
@@ -72,10 +75,12 @@ class Process:
         self.turnaroundTime = 0
         self.waitingTime = 0
 
+        self.processCSTime = 0
+
         self.currentQueue = RR_HIGH_PRIORITY  # All processes start at the Highest Queue: Round Robin.
 
 
-def parse_input(file_content):
+def parse_input(file_content: str):
     lines = file_content.strip().split("\n")
 
     # The input can be divided into two halves, separated by a newline ("\n") in between.
@@ -119,23 +124,35 @@ def parse_input(file_content):
     return num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list
 
 
-# This is a placeholder. Please implement this.
-def print_mlfq_state(MLFQ, process_list):
-    pass
+# TODO: This is in the wrong format so this actually still needs to be implemented.
+def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
+    print(f"At Time = {MLFQ.currentGlobalTime}")
+    print("Queues:")
+    print(f"  Round Robin Queue: {[(p.processName, p.cpuTimes[0])for p in MLFQ.roundRobinQueue]}")
+    print(f"  FCFS Queue: {[(p.processName, p.cpuTimes[0]) for p in MLFQ.firstComeFirstServeQueue]}")
+    print(f"  SJF Queue: {[(p.processName, p.cpuTimes[0]) for p in MLFQ.shortestJobFirstQueue]}")
+    print(f"CPU : {MLFQ.recentRunningProcess}")
+    print(f"I/O : {[(p.processName, p.ioTimes[0]) for p in MLFQ.ioProcesses]}")
+    print("\n")
 
 
-def print_simulation_summary(process_list):
+def print_simulation_summary(process_list: list[Process]):
     total_turnaround_time = 0
+    process_list.sort(key=lambda p: (p.processName))
 
-    print("\nSIMULATION DONE\n")
+    print("SIMULATION DONE\n")
 
     # Calculate turnaround and waiting times for each process.
     for process in process_list:
         process.turnaroundTime = process.completionTime - process.arrivalTime
-        process.waitingTime = process.completionTime - process.totalBurstTime
+
+        # I do not know if we should consider context switches in the waiting time but I did just in case.
+        process.waitingTime = process.completionTime - process.totalBurstTime - process.processCSTime
         total_turnaround_time += process.turnaroundTime
 
         print(f"Turn-around time for Process {process.processName} : " f"{process.completionTime} - {process.arrivalTime} = {process.turnaroundTime} ms")
+
+    print()
 
     # Calculate and print average turnaround time.
     average_turnaround_time = total_turnaround_time / len(process_list)
@@ -145,8 +162,22 @@ def print_simulation_summary(process_list):
     for process in process_list:
         print(f"Waiting time for Process {process.processName} : {process.waitingTime} ms")
 
+    print()
 
-def run_mlfq_scheduler(MLFQ, process_list):
+
+# IMPORTANT: According to the sample input in the project specs it seems that
+# (to give an exammple), if a process is in I/O in a higher priority queue when,
+# at the same time, another process in a lower priority queue is just about to run next,
+# then the lower priority process should actually be allowed to run its entire burst time.
+
+
+# Essentially, it gets to run uninterrupted even if the process in the higher priority queue,
+# let's say, wakes up earlier than when the lower priority process finishes its burst time.
+# THIS IS NOT IMPLEMENTED HERE! Instead, all lower priority processes can get interrupted
+# by higher ones at any time. I do not know which is correct so kindly verify HAHAHAHA
+
+
+def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
     while True:
         # Step 1: Add newly arriving processes to the highest priority queue: the Round Robin Queue.
         for process in process_list:
@@ -159,6 +190,8 @@ def run_mlfq_scheduler(MLFQ, process_list):
                 if process.ioTimes:
                     process.ioTimes[0] -= 1
 
+            for process in MLFQ.ioProcesses:
+                if process.ioTimes:
                     if process.ioTimes[0] == 0:
                         process.ioTimes.pop(0)
                         MLFQ.ioProcesses.remove(process)
@@ -172,6 +205,7 @@ def run_mlfq_scheduler(MLFQ, process_list):
                                 MLFQ.shortestJobFirstQueue.append(process)
 
                         process.completionTime = MLFQ.currentGlobalTime
+                        process.processCSTime = MLFQ.totalCSTime
 
             # Step 3: Process CPU bursts and handle queue transitions.
             # TODO: Also please don't forget to implement the actual algorithm for Shortest Job First!
@@ -197,6 +231,7 @@ def run_mlfq_scheduler(MLFQ, process_list):
                             elif not current_process.cpuTimes:
                                 current_process.currentQueue = NULL_QUEUE_PRIORITY
                                 current_process.completionTime = MLFQ.currentGlobalTime
+                                current_process.processCSTime = MLFQ.totalCSTime
                             current_queue.pop(0)
 
                         # If the Round Robin Time Allotment expires before the CPU burst is finished,
@@ -234,6 +269,7 @@ def run_mlfq_scheduler(MLFQ, process_list):
                             MLFQ.recentRunningProcess = 0
                             print_mlfq_state(MLFQ, process_list)
                             MLFQ.currentGlobalTime += MLFQ.contextSwitch
+                            MLFQ.totalCSTime += MLFQ.contextSwitch
 
                         MLFQ.recentRunningProcess = current_queue[0].processID
 
@@ -248,9 +284,9 @@ def run_mlfq_scheduler(MLFQ, process_list):
         # Increment global time.
         MLFQ.currentGlobalTime += 1
 
-        # TODO: This stops the scheduler if at any point in time, except for at t = 0,
+        # This stops the scheduler if at any point in time, except for at t = 0,
         # all three of the queues are empty at the same time. However, I do not know if
-        # this should be the correct behavior according to the project specs.
+        # this should be the correct behavior according to the project specs as well as if it's safe.
 
         if not (MLFQ.roundRobinQueue or MLFQ.firstComeFirstServeQueue or MLFQ.shortestJobFirstQueue):
             print_simulation_summary(process_list)
@@ -274,6 +310,14 @@ if __name__ == "__main__":
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
     with open("set2.txt", "r") as file:
+        file_content = file.read()
+
+    num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
+    second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
+    run_mlfq_scheduler(second_MLFQ, process_list)
+
+    # Parse set3.txt, use it to run the scheduler, and then output the results.
+    with open("set3.txt", "r") as file:
         file_content = file.read()
 
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
