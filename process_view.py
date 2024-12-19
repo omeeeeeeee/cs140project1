@@ -12,7 +12,12 @@ class SchedulerView:
     def display_queue_state(queues):
         for i, queue in enumerate(queues):
             queue_state = [p.name for p in queue.processes]
-            print(f"Queue Q{i + 1}: {queue_state if queue_state else '[]'}")
+            if i == 0:
+                print(f"Arriving: {queue_state if queue_state else '[]'}")
+            elif i == len(queues) - 1:
+                print(f"Finished: {queue_state if queue_state else '[]'}")
+            else:
+                print(f"Queue Q{i - 1}: {queue_state if queue_state else '[]'}")
 
     @staticmethod
     def display_cpu_state(cpu_process):

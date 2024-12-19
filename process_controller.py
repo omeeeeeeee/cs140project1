@@ -35,11 +35,11 @@ class SchedulerController:
         self.view.display_statistics(self.model.finished_processes)
 
     def handle_arrivals(self):
-        # Logic for enqueuing newly arriving processes
-        pass
+        while self.model.queues[0].processes and self.model.queues[0].processes[0].arrival_time == self.model.time:
+            process = self.model.queues[0].dequeue()
+            self.model.queues[1].enqueue(process)
 
     def handle_cpu(self):
-        # Logic for CPU scheduling and demotion
         pass
 
     def handle_io(self):

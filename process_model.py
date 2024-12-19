@@ -27,13 +27,14 @@ class Queue:
 class MLFQ:
     def __init__(self, q1_time_allotment, q2_time_allotment, context_switch_time):
         self.queues = [
+            Queue(None), # Arriving processes
             Queue(q1_time_allotment),
             Queue(q2_time_allotment),
-            Queue(None)  # SJF, no time allotment
+            Queue(None),  # SJF, no time allotment
+            Queue(None) # Finished processes
         ]
         self.context_switch_time = context_switch_time
         self.time = 0
-        self.finished_processes = []
         self.cpu_process = None
         self.io_processes = []
 
