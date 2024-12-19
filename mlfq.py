@@ -30,7 +30,6 @@ SJF_LOW_PRIORITY = 3
 
 NULL_QUEUE_PRIORITY = 0  # This is for processes that have completely finished.
 
-
 class MLFQ:
     def __init__(self, rr_allotment, fcfs_allotment, context_switch_time):
         self.currentGlobalTime = 0
@@ -66,6 +65,7 @@ class Process:
         self.usedTimeQuantum = 0
         self.usedTimeAllotment = 0
         self.totalBurstTime = 0
+        self.totalIoTime = 0 # Added total I/O time (to be subtracted also in waiting time)
         self.completionTime = 0
         self.turnaroundTime = 0
         self.waitingTime = 0
@@ -140,7 +140,7 @@ def print_simulation_summary(process_list: list[Process]):
         process.turnaroundTime = process.completionTime - process.arrivalTime
 
         # I do not know if we should consider context switches in the waiting time but I did just in case.
-        process.waitingTime = process.completionTime - process.totalBurstTime - process.processCSTime
+        process.waitingTime = process.completionTime - process.totalBurstTime - process.processCSTime - process.totalIoTime # Added total IO time
         total_turnaround_time += process.turnaroundTime
 
         print(f"Turn-around time for Process {process.processName} : " f"{process.completionTime} - {process.arrivalTime} = {process.turnaroundTime} ms")
@@ -254,6 +254,8 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             current_process.usedTimeQuantum = 0  # Not really necessary
                             current_queue.pop(0)
                             MLFQ.shortestJobFirstQueue.append(current_process)
+                            
+                        
 
                     # Handle Context Switching between different processes.
                     if current_queue and MLFQ.recentRunningProcess != current_queue[0].processID:

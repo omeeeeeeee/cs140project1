@@ -1,0 +1,20 @@
+0
+A and B arrive
+RR CPU Queue is [A, B]
+A runs (cputime -=1, RR CPU Queue is [B] )
+
+1 
+A runs (cpu time -=1)
+B waits
+
+2
+C arrives (enqueue process to RR CPU queue)
+A stops running (enqueue to RR IO queue)
+Context switch to B
+
+3
+B runs (pop from RR CPU queue)
+
+
+A runs (first alphabetically)
+B waits 
