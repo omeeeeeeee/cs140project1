@@ -130,7 +130,9 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
     
     print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
 
-    if MLFQ.recentRunningProcess:
+    if not MLFQ.roundRobinQueue and not MLFQ.firstComeFirstServeQueue and not MLFQ.shortestJobFirstQueue:
+        print("CPU: []")
+    elif MLFQ.recentRunningProcess:
         current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
         print(f"CPU: {current_cpu_process}")
     else:
@@ -215,6 +217,9 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                                 MLFQ.firstComeFirstServeQueue.append(process)
                             elif process.currentQueue == SJF_LOW_PRIORITY:
                                 MLFQ.shortestJobFirstQueue.append(process)
+                        
+                        else:
+                            process.currentQueue = NULL_QUEUE_PRIORITY
 
                         process.completionTime = MLFQ.currentGlobalTime
                         process.processCSTime = MLFQ.totalCSTime
