@@ -65,6 +65,7 @@ class Process:
         self.turnaroundTime = 0
         self.waitingTime = 0
         self.processCSTime = 0
+        self.displayedDone = False
         self.currentQueue = RR_HIGH_PRIORITY  # All processes start at the Highest Queue: Round Robin.
 
 
@@ -113,12 +114,15 @@ def parse_input(file_content: str):
 
 
 
-def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
+def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process], current_process: Process = None):
     print(f"At Time = {MLFQ.currentGlobalTime}")
     
-    done_processes = [p.processName for p in process_list if p.currentQueue == NULL_QUEUE_PRIORITY]
+    done_processes = [p.processName for p in process_list if (p.currentQueue == NULL_QUEUE_PRIORITY) and p.displayedDone == True]
     if done_processes:
         print(f"{', '.join(done_processes)} DONE")
+        for p in process_list:
+            if p.processName in done_processes:
+                p.displayedDone = False
 
     arriving_processes = [p.processName for p in MLFQ.roundRobinQueue if p.arrivalTime == MLFQ.currentGlobalTime]
     if arriving_processes:
@@ -133,16 +137,14 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
     if not MLFQ.roundRobinQueue and not MLFQ.firstComeFirstServeQueue and not MLFQ.shortestJobFirstQueue:
         print("CPU: []")
     elif MLFQ.roundRobinQueue:
-        # current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
         print(f"CPU: {MLFQ.roundRobinQueue[0].processName}")
     elif MLFQ.firstComeFirstServeQueue:
-        # current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
         print(f"CPU: {MLFQ.firstComeFirstServeQueue[0].processName}")
     elif MLFQ.shortestJobFirstQueue:
-        # current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
         print(f"CPU: {MLFQ.shortestJobFirstQueue[0].processName}")
     else:
         print("CPU: []")
+
 
     if MLFQ.ioProcesses:
         io_processes = [p.processName for p in MLFQ.ioProcesses]
@@ -226,6 +228,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                         
                         else:
                             process.currentQueue = NULL_QUEUE_PRIORITY
+                            process.displayedDone = True
 
                         process.completionTime = MLFQ.currentGlobalTime
                         process.processCSTime = MLFQ.totalCSTime
@@ -253,6 +256,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                                 MLFQ.ioProcesses.append(current_process)
                             elif not current_process.cpuTimes:
                                 current_process.currentQueue = NULL_QUEUE_PRIORITY
+                                current_process.displayedDone = True
                                 current_process.completionTime = MLFQ.currentGlobalTime
                                 current_process.processCSTime = MLFQ.totalCSTime
                             current_queue.pop(0)
