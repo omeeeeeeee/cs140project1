@@ -217,6 +217,9 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                                 MLFQ.firstComeFirstServeQueue.append(process)
                             elif process.currentQueue == SJF_LOW_PRIORITY:
                                 MLFQ.shortestJobFirstQueue.append(process)
+                        
+                        else:
+                            process.currentQueue = NULL_QUEUE_PRIORITY
 
                         process.completionTime = MLFQ.currentGlobalTime
                         process.processCSTime = MLFQ.totalCSTime
