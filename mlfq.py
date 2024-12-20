@@ -131,8 +131,18 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process], current_process: P
     round_robin_queue = [p.processName for p in MLFQ.roundRobinQueue]
     fcfs_queue = [p.processName for p in MLFQ.firstComeFirstServeQueue]
     sjf_queue = [p.processName for p in MLFQ.shortestJobFirstQueue]
+
+    # print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
     
-    print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
+    if MLFQ.roundRobinQueue:   
+        round_robin_queue = [p.processName for p in MLFQ.roundRobinQueue][1:]
+        print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
+    elif MLFQ.firstComeFirstServeQueue:   
+        fcfs_queue = [p.processName for p in MLFQ.firstComeFirstServeQueue][1:]
+        print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
+    elif MLFQ.shortestJobFirstQueue:
+        sjf_queue = [p.processName for p in MLFQ.shortestJobFirstQueue][1:]
+        print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
 
     if not MLFQ.roundRobinQueue and not MLFQ.firstComeFirstServeQueue and not MLFQ.shortestJobFirstQueue:
         print("CPU: []")
