@@ -172,6 +172,8 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process], current_process: P
         elif MLFQ.shortestJobFirstQueue:
             sjf_queue = [p.processName for p in MLFQ.shortestJobFirstQueue][1:]
             print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
+        else:
+            print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
 
         if not MLFQ.roundRobinQueue and not MLFQ.firstComeFirstServeQueue and not MLFQ.shortestJobFirstQueue:
             print("CPU: []")
