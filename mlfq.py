@@ -67,7 +67,7 @@ class Process:
         self.processCSTime = 0
         self.displayedDone = False
         self.currentQueue = RR_HIGH_PRIORITY  # All processes start at the Highest Queue: Round Robin.
-
+        self.recentDemotionTime = -1 # Added to track timestamp of demotion
 
 def parse_input(file_content: str):
     lines = file_content.strip().split("\n")
@@ -189,7 +189,7 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process], current_process: P
         io_processes = [p.processName for p in MLFQ.ioProcesses]
         print(f"I/O: [{', '.join(io_processes)}]")
 
-    demoted_processes = [p.processName for p in process_list if p.currentQueue in [FCFS_MEDIUM_PRIORITY, SJF_LOW_PRIORITY]]
+    demoted_processes = [p.processName for p in process_list if p.currentQueue in [FCFS_MEDIUM_PRIORITY, SJF_LOW_PRIORITY] and p.recentDemotionTime == MLFQ.currentGlobalTime] # Condition to check if current time == demotion time (to address repeating printed demotion output)
     if demoted_processes:
         print(f"{', '.join(demoted_processes)} DEMOTED")
 
@@ -309,6 +309,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             current_process.usedTimeQuantum = 0  # Not really necessary
                             current_queue.pop(0)
                             MLFQ.firstComeFirstServeQueue.append(current_process)
+                            current_process.recentDemotionTime = MLFQ.currentGlobalTime # Track demotion time
 
                         # If the Round Robin Time Quantum expires before the CPU burst is finished,
                         # then switch out the process.
@@ -327,6 +328,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             current_process.usedTimeQuantum = 0  # Not really necessary
                             current_queue.pop(0)
                             MLFQ.shortestJobFirstQueue.append(current_process)
+                            current_process.recentDemotionTime = MLFQ.currentGlobalTime # Track demotion time
 
                     # Handle Context Switching between different processes.
                     if current_queue and MLFQ.recentRunningProcess != current_queue[0].processID:
@@ -376,7 +378,7 @@ if __name__ == "__main__":
     # print()
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
-    with open("set2.txt", "r") as file:
+    with open("set2_easy.txt", "r") as file:
         file_content = file.read()
 
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
