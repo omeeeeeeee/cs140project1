@@ -132,9 +132,15 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
 
     if not MLFQ.roundRobinQueue and not MLFQ.firstComeFirstServeQueue and not MLFQ.shortestJobFirstQueue:
         print("CPU: []")
-    elif MLFQ.recentRunningProcess:
-        current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
-        print(f"CPU: {current_cpu_process}")
+    elif MLFQ.roundRobinQueue:
+        # current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
+        print(f"CPU: {MLFQ.roundRobinQueue[0].processName}")
+    elif MLFQ.firstComeFirstServeQueue:
+        # current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
+        print(f"CPU: {MLFQ.firstComeFirstServeQueue[0].processName}")
+    elif MLFQ.shortestJobFirstQueue:
+        # current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
+        print(f"CPU: {MLFQ.shortestJobFirstQueue[0].processName}")
     else:
         print("CPU: []")
 
@@ -327,10 +333,10 @@ if __name__ == "__main__":
     print()
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
-    with open("set2.txt", "r") as file:
-        file_content = file.read()
+    # with open("set2.txt", "r") as file:
+    #     file_content = file.read()
 
-    num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
-    second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
-    run_mlfq_scheduler(second_MLFQ, process_list)
-    print()
+    # num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
+    # second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
+    # run_mlfq_scheduler(second_MLFQ, process_list)
+    # print()
