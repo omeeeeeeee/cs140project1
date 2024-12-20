@@ -246,7 +246,6 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
         for process in process_list:
             if process.arrivalTime == MLFQ.currentGlobalTime and process not in MLFQ.roundRobinQueue:
                 MLFQ.roundRobinQueue.append(process)
-                print(f"Arriving: [{process.processName}]")
 
         if MLFQ.currentGlobalTime > 0:
             # Step 2: Handle IO processes, if any. Decrement I/O bursts per time step and check for CPU burst times.
@@ -259,7 +258,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                     if process.ioTimes[0] == 0:
                         process.ioTimes.pop(0)
                         MLFQ.ioProcesses.remove(process)
-
+                    
                         if process.cpuTimes:
                             if process.currentQueue == RR_HIGH_PRIORITY:
                                 MLFQ.roundRobinQueue.append(process)
@@ -341,13 +340,55 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             MLFQ.shortestJobFirstQueue.append(current_process)
                             current_process.recentDemotionTime = MLFQ.currentGlobalTime # Track demotion time
 
-                    # Handle Context Switching between different processes.
+                    # # Handle Context Switching between different processes.
+                    # if current_queue and MLFQ.recentRunningProcess != current_queue[0].processID:
+
+                    #     if MLFQ.contextSwitch > 0:
+                    #         MLFQ.recentRunningProcess = 0
+                    #         print_mlfq_state(MLFQ, process_list, current_running_process)
+                    #         MLFQ.currentGlobalTime += MLFQ.contextSwitch
+                    #         MLFQ.totalCSTime += MLFQ.contextSwitch
+
+                    #     MLFQ.recentRunningProcess = current_queue[0].processID
+                    #     current_running_process = current_queue[0]  # Update the currently running process
+
+                    # Handle Context Switching between different processes (version 2 -- with handling of simultaneous I/O)
                     if current_queue and MLFQ.recentRunningProcess != current_queue[0].processID:
 
                         if MLFQ.contextSwitch > 0:
                             MLFQ.recentRunningProcess = 0
                             print_mlfq_state(MLFQ, process_list, current_running_process)
-                            MLFQ.currentGlobalTime += MLFQ.contextSwitch
+                            
+                            # Handle each timestep of the context switch
+                            for _ in range(MLFQ.contextSwitch):
+                                # Decrement I/O times for all processes in I/O
+                                for process in MLFQ.ioProcesses:
+                                    if process.ioTimes:
+                                        process.ioTimes[0] -= 1
+                                        
+                                # Remove processes whose I/O bursts have completed
+                                for process in list(MLFQ.ioProcesses):  # Use a copy to avoid mutation issues
+                                    if process.ioTimes and process.ioTimes[0] == 0:
+                                        process.ioTimes.pop(0)
+                                        MLFQ.ioProcesses.remove(process)
+                                        
+                                        # Add process back to the appropriate queue or mark as completed
+                                        if process.cpuTimes:
+                                            if process.currentQueue == RR_HIGH_PRIORITY:
+                                                MLFQ.roundRobinQueue.append(process)
+                                            elif process.currentQueue == FCFS_MEDIUM_PRIORITY:
+                                                MLFQ.firstComeFirstServeQueue.append(process)
+                                            elif process.currentQueue == SJF_LOW_PRIORITY:
+                                                MLFQ.shortestJobFirstQueue.append(process)
+                                        else:
+                                            process.currentQueue = NULL_QUEUE_PRIORITY
+                                            process.displayedDone = True
+                                            process.completionTime = MLFQ.currentGlobalTime
+                                            process.processCSTime = MLFQ.totalCSTime
+
+                                # Increment global time for each step of the context switch
+                                MLFQ.currentGlobalTime += 1
+                                
                             MLFQ.totalCSTime += MLFQ.contextSwitch
 
                         MLFQ.recentRunningProcess = current_queue[0].processID
@@ -389,6 +430,8 @@ if __name__ == "__main__":
     first_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
     run_mlfq_scheduler(first_MLFQ, process_list)
     print()
+    
+    print("-" * 100)
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
     with open("set2_easy.txt", "r") as file:
