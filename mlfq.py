@@ -325,19 +325,25 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
 
 if __name__ == "__main__":
     # Parse set1.txt, use it to run the scheduler, and then output the results.
-    with open("/Users/jakinmishlebacalla/Downloads/cs140project1/set1.txt", "r") as file:
-        file_content = file.read()
+    try: 
+        with open("set1.txt", "r") as file:
+            file_content = file.read()
 
-    num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
-    first_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
-    run_mlfq_scheduler(first_MLFQ, process_list)
-    print()
+        num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
+        first_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
+        run_mlfq_scheduler(first_MLFQ, process_list)
+        print()
+    except Exception as e:
+        print(e)
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
-    with open("set2.txt", "r") as file:
-        file_content = file.read()
+    try: 
+        with open("set2.txt", "r") as file:
+            file_content = file.read()
 
-    num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
-    second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
-    run_mlfq_scheduler(second_MLFQ, process_list)
-    print()
+        num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
+        second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
+        run_mlfq_scheduler(second_MLFQ, process_list)
+        print()
+    except Exception as e:
+        print(e)
