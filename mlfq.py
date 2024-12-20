@@ -112,8 +112,7 @@ def parse_input(file_content: str):
     return num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list
 
 
-
-def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
+def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process], current_running_process: Process):
     print(f"At Time = {MLFQ.currentGlobalTime}")
     
     done_processes = [p.processName for p in process_list if p.currentQueue == NULL_QUEUE_PRIORITY]
@@ -124,17 +123,14 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process]):
     if arriving_processes:
         print(f"Arriving: [{', '.join(arriving_processes)}]")
 
-    round_robin_queue = [p.processName for p in MLFQ.roundRobinQueue]
-    fcfs_queue = [p.processName for p in MLFQ.firstComeFirstServeQueue]
-    sjf_queue = [p.processName for p in MLFQ.shortestJobFirstQueue]
+    round_robin_queue = [p.processName for p in MLFQ.roundRobinQueue if p != current_running_process]
+    fcfs_queue = [p.processName for p in MLFQ.firstComeFirstServeQueue if p != current_running_process]
+    sjf_queue = [p.processName for p in MLFQ.shortestJobFirstQueue if p != current_running_process]
     
     print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
 
-    if not MLFQ.roundRobinQueue and not MLFQ.firstComeFirstServeQueue and not MLFQ.shortestJobFirstQueue:
-        print("CPU: []")
-    elif MLFQ.recentRunningProcess:
-        current_cpu_process = next((p.processName for p in process_list if p.processID == MLFQ.recentRunningProcess), None)
-        print(f"CPU: {current_cpu_process}")
+    if current_running_process:
+        print(f"CPU: {current_running_process.processName}")
     else:
         print("CPU: []")
 
@@ -192,11 +188,14 @@ def print_simulation_summary(process_list: list[Process]):
 
 
 def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
+    current_running_process = None  # Track the currently running process
+
     while True:
         # Step 1: Add newly arriving processes to the highest priority queue: the Round Robin Queue.
         for process in process_list:
             if process.arrivalTime == MLFQ.currentGlobalTime and process not in MLFQ.roundRobinQueue:
                 MLFQ.roundRobinQueue.append(process)
+                print(f"Arriving: [{process.processName}]")
 
         if MLFQ.currentGlobalTime > 0:
             # Step 2: Handle IO processes, if any. Decrement I/O bursts per time step and check for CPU burst times.
@@ -218,21 +217,27 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             elif process.currentQueue == SJF_LOW_PRIORITY:
                                 MLFQ.shortestJobFirstQueue.append(process)
                         
-                        else:
-                            process.currentQueue = NULL_QUEUE_PRIORITY
-
+                        
                         process.completionTime = MLFQ.currentGlobalTime
                         process.processCSTime = MLFQ.totalCSTime
 
             # Step 3: Process CPU bursts and handle queue transitions.
-            # TODO: Also please don't forget to implement the actual algorithm for Shortest Job First!
             for current_queue in [MLFQ.roundRobinQueue, MLFQ.firstComeFirstServeQueue, MLFQ.shortestJobFirstQueue]:
                 if current_queue:
+                    if current_queue == MLFQ.shortestJobFirstQueue:
+                        # Sort the SJF queue based on remaining CPU burst time
+                        current_queue.sort(key=lambda p: (sum(p.cpuTimes), p.processID))
+
                     current_process = current_queue[0]
+
+                    # Check if a higher priority process is ready to run
+                    if current_running_process and current_running_process.currentQueue > current_process.currentQueue:
+                        # If a higher priority process is ready, do not switch if a lower priority process is running
+                        break
 
                     # Decrement CPU bursts per time step. In addition,
                     # increment the time quantum and time allotment used by the current process so far.
-
+             
                     if current_process.cpuTimes:
                         current_process.cpuTimes[0] -= 1
                         current_process.usedTimeQuantum += 1
@@ -259,7 +264,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             current_process.usedTimeAllotment = 0
                             current_process.usedTimeQuantum = 0  # Not really necessary
                             current_queue.pop(0)
-                            MLFQ.firstComeFirstServeQueue.append(current_process)
+                            MLFQ.firstComeFirstServeQueue.append(current_process )
 
                         # If the Round Robin Time Quantum expires before the CPU burst is finished,
                         # then switch out the process.
@@ -284,11 +289,12 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
 
                         if MLFQ.contextSwitch > 0:
                             MLFQ.recentRunningProcess = 0
-                            print_mlfq_state(MLFQ, process_list)
+                            print_mlfq_state(MLFQ, process_list, current_running_process)
                             MLFQ.currentGlobalTime += MLFQ.contextSwitch
                             MLFQ.totalCSTime += MLFQ.contextSwitch
 
                         MLFQ.recentRunningProcess = current_queue[0].processID
+                        current_running_process = current_queue[0]  # Update the currently running process
 
                     break  # Remember, queues can only be ran, one at a time, based on the priority order.
 
@@ -296,7 +302,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
             MLFQ.recentRunningProcess = MLFQ.roundRobinQueue[0].processID
 
         # Print the current state of MLFQ.
-        print_mlfq_state(MLFQ, process_list)
+        print_mlfq_state(MLFQ, process_list, current_running_process)
 
         # Increment global time.
         MLFQ.currentGlobalTime += 1
@@ -310,6 +316,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
             break
 
 
+
 # Do we modularize this main function into sub functions as well?
 # Also, is it possible for the input to be typed by the user via the terminal?
 # I do not know if these features need to be implemented (neither of them have been yet).
@@ -318,7 +325,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
 
 if __name__ == "__main__":
     # Parse set1.txt, use it to run the scheduler, and then output the results.
-    with open("set1.txt", "r") as file:
+    with open("/Users/jakinmishlebacalla/Downloads/cs140project1/set1.txt", "r") as file:
         file_content = file.read()
 
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
