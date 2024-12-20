@@ -170,6 +170,7 @@ def print_mlfq_state(MLFQ: MLFQ, process_list: list[Process], current_process: P
             fcfs_queue = [p.processName for p in MLFQ.firstComeFirstServeQueue][1:]
             print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
         elif MLFQ.shortestJobFirstQueue:
+            MLFQ.shortestJobFirstQueue.sort(key=lambda p: (p.cpuTimes[0], p.processID))
             sjf_queue = [p.processName for p in MLFQ.shortestJobFirstQueue][1:]
             print(f"Queues: [{', '.join(round_robin_queue)}]; [{', '.join(fcfs_queue)}]; [{', '.join(sjf_queue)}]")
         else:
@@ -275,7 +276,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
 
                         process.completionTime = MLFQ.currentGlobalTime
                         process.processCSTime = MLFQ.totalCSTime
-
+            MLFQ.shortestJobFirstQueue.sort(key=lambda p: (p.cpuTimes[0], p.processID))
             # Step 3: Process CPU bursts and handle queue transitions.
             for current_queue in [MLFQ.roundRobinQueue, MLFQ.firstComeFirstServeQueue, MLFQ.shortestJobFirstQueue]:
                 if current_queue:
@@ -341,6 +342,10 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
                             current_queue.pop(0)
                             MLFQ.shortestJobFirstQueue.append(current_process)
                             current_process.recentDemotionTime = MLFQ.currentGlobalTime # Track demotion time
+
+                        elif current_process.currentQueue == SJF_LOW_PRIORITY:
+                            current_queue.pop(0)
+                            current_queue.append(current_process)
 
                     # # Handle Context Switching between different processes.
                     # if current_queue and MLFQ.recentRunningProcess != current_queue[0].processID:
@@ -425,7 +430,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
 
 if __name__ == "__main__":
     # Parse set1.txt, use it to run the scheduler, and then output the results.
-    with open("set1.txt", "r") as file:
+    with open("set1_scftest.txt", "r") as file:
         file_content = file.read()
 
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
@@ -436,11 +441,11 @@ if __name__ == "__main__":
     print("-" * 100)
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
-    with open("set2_easy.txt", "r") as file:
-        file_content = file.read()
+    # with open("set2_easy.txt", "r") as file:
+    #     file_content = file.read()
 
-        num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
-        second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
-        run_mlfq_scheduler(second_MLFQ, process_list)
-        print()
+    #     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
+    #     second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
+    #     run_mlfq_scheduler(second_MLFQ, process_list)
+    #     print()
 
