@@ -7,6 +7,11 @@
 #                                                    /___/                          #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+# Members:
+# Amparo, Naomi Ashley
+# Bacalla, Jakin Mishle
+# Comendador Jr., Ramon
+# Odhuno, Shane
 
 # ACRONYM LIST:
 # MLFQ: Multi-Level Feedback Queue
