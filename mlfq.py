@@ -51,11 +51,6 @@ class MLFQ:
 # details in advance through the set1.txt and set2.txt input files.
 
 
-# We take advantage of this by incorporating as much up-front data as possible.
-# In addition, since we are dealing with a split of CPU and I/O times, perhaps we could
-# try placing these times in separate, array data structures to account for this?
-
-
 class Process:
     def __init__(self):
         self.processName = ""
@@ -110,8 +105,7 @@ def parse_input(file_content: str):
         process_list.append(process)
 
     # Sort processes by arrival time and then by process ID (alphabetical order).
-    # We assume that the input file is already sorted at least by processName
-    # (with hopefully the correct corresponding processID mappings).
+    # We assume that the input file is already sorted at least by processName.
 
     process_list.sort(key=lambda p: (p.arrivalTime, p.processID))
 
@@ -215,7 +209,6 @@ def print_simulation_summary(process_list: list[Process]):
     for process in process_list:
         process.turnaroundTime = process.completionTime - process.arrivalTime
 
-        # I do not know if we should consider context switches in the waiting time but I did just in case.
         process.waitingTime = process.completionTime - process.totalBurstTime - process.processCSTime
         total_turnaround_time += process.turnaroundTime
 
@@ -232,18 +225,6 @@ def print_simulation_summary(process_list: list[Process]):
         print(f"Waiting time for Process {process.processName} : {process.waitingTime} ms")
 
     print()
-
-
-# IMPORTANT: According to the sample input in the project specs it seems that
-# (to give an example), if a process is in I/O in a higher priority queue when,
-# at the same time, another process in a lower priority queue is just about to run next,
-# then the lower priority process should actually be allowed to run its entire burst time.
-
-
-# Essentially, it gets to run uninterrupted even if the process in the higher priority queue,
-# let's say, wakes up earlier than when the lower priority process finishes its burst time.
-# THIS IS NOT IMPLEMENTED HERE! Instead, all lower priority processes can get interrupted
-# by higher ones at any time. I do not know which is correct so kindly verify HAHAHAHA
 
 
 def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
@@ -418,19 +399,11 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
         MLFQ.currentGlobalTime += 1
 
         # This stops the scheduler if at any point in time, except for at t = 0,
-        # all three of the queues are empty at the same time. However, I do not know if
-        # this should be the correct behavior according to the project specs as well as if it's safe.
+        # all three of the queues are empty at the same time. 
 
         if not (MLFQ.roundRobinQueue or MLFQ.firstComeFirstServeQueue or MLFQ.shortestJobFirstQueue):
             print_simulation_summary(process_list)
             break
-
-
-
-# Do we modularize this main function into sub functions as well?
-# Also, is it possible for the input to be typed by the user via the terminal?
-# I do not know if these features need to be implemented (neither of them have been yet).
-# Regardless, I just wanted to give a heads up anyways just in case.
 
 
 if __name__ == "__main__":
