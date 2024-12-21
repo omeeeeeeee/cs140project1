@@ -435,7 +435,7 @@ def run_mlfq_scheduler(MLFQ: MLFQ, process_list: list[Process]):
 
 if __name__ == "__main__":
     # Parse set1.txt, use it to run the scheduler, and then output the results.
-    with open("set1_scftest.txt", "r") as file:
+    with open("set1.txt", "r") as file:
         file_content = file.read()
 
     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
@@ -446,11 +446,11 @@ if __name__ == "__main__":
     print("-" * 100)
 
     # Parse set2.txt, use it to run the scheduler, and then output the results.
-    # with open("set2_easy.txt", "r") as file:
-    #     file_content = file.read()
+    with open("set2.txt", "r") as file:
+        file_content = file.read()
 
-    #     num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
-    #     second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
-    #     run_mlfq_scheduler(second_MLFQ, process_list)
-    #     print()
+        num_processes, rr_allotment, fcfs_allotment, context_switch_time, process_list = parse_input(file_content)
+        second_MLFQ = MLFQ(rr_allotment, fcfs_allotment, context_switch_time)
+        run_mlfq_scheduler(second_MLFQ, process_list)
+        print()
 
